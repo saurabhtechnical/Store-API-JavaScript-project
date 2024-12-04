@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latest Product</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .main {
+            width: 1320px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .filterbox {
+            flex-basis: 23%;
+        }
+
+        .product {
+            flex-basis: 75%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .CategoryList label {
+            display: block;
+            padding: 5px 0;
+        }
+
+        .productItems {
+            flex-basis: 31%;
+            margin-bottom: 20px;
+            box-shadow: 0px 0px 10px 2px #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .productItems img {
+            width: 100%;
+            height: 250px;
+        }
+
+        .productItems p {
+            margin: 10px 0;
+        }
+
+        .productItems h3 {
+            margin: 10px 0;
+        }
+
+        .productItems h4 {
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+
+        .productItems button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+           
+            background-color: black;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .productItems button:hover {
+          
+           background-color: black;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 50%;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 0px 10px 2px #ccc;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .modal button {
+            margin-top: 10px;
+            background-color: #dc3545;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .modal button:hover {
+            background-color: #a71d2a;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- navbar start -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">Ecommerce</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="product.html">Products</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="about.html">About</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="contact.html">Contact</a>
+              </li>
+            </ul>
+            <ul class="navbar-nav ms-auto  mb-2 mb-lg-0">
+              <li class="btn">
+                <a class="btn btn-outline-dark " href="Login.html">Login</a>
+              </li>
+              <li class="btn">
+                <a class="btn btn-outline-dark " href="register.html">Register</a>
+              </li>
+              <li class="btn">
+                <a class="btn btn-outline-dark " href="#">Cart(0)</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <!-- nav bar end -->
+ 
+    <h1>Latest Products</h1>
+    <div class="main">
+        <div class="filterbox">
+            <h2>Category</h2>
+            <div class="CategoryList">
+                
+            </div>
+        </div>
+        <div class="product">
+            
+        </div>
+    </div>
+
+    <!--  Details Model -->
+    <div class="overlay" onclick="closeDetails()"></div>
+    <div class="modal" id="detailsModal">
+        <div id="detailsContent"></div>
+        <button onclick="closeDetails()">Close</button>
+    </div>
+
+    <script>
+        let productDiv = document.querySelector(".product");
+        let CategoryListDiv = document.querySelector(".CategoryList");
+        let allCat = [];
+        const modal = document.getElementById('detailsModal');
+        const overlay = document.querySelector('.overlay');
+        const detailsContent = document.getElementById('detailsContent');
+
+        // Display products 
+        let displayProduct = async (selectedCategories = []) => {
+            CategoryListDiv.innerHTML = '';
+            productDiv.innerHTML = '';
+            
+            let productResponse = await fetch('https://fakestoreapi.com/products');
+            let products = await productResponse.json();
+
+            // Generate category list
+            products.forEach((product) => {
+                if (!allCat.includes(product.category)) {
+                    allCat.push(product.category);
+                    CategoryListDiv.innerHTML += `
+                        <label>
+                            <input type="checkbox" onclick="categoryFilter()" value="${product.category}">
+                            ${product.category}
+                        </label>`;
+                }
+            });
+
+            // Filtering the products
+            let filteredCategories = selectedCategories.length > 0 ? selectedCategories : allCat;
+
+            products.forEach((product) => {
+                if (filteredCategories.includes(product.category)) {
+                    productDiv.innerHTML += `
+                        <div class="productItems">
+                            <img src="${product.image}" alt="${product.title}">
+                            <h4>${product.category}</h4>
+                            <p>${product.title} | Rating: ${product.rating.rate}</p>
+                            <h3>$${product.price}</h3>
+                            <button onclick="showDetails('${product.description}')">Details</button>
+                            <button onclick="addToCart('${product.title}')">Add to Cart</button>
+                        </div>`;
+                }
+            });
+        };
+
+        
+        let categoryFilter = () => {
+            let checkedInputs = document.querySelectorAll("input[type='checkbox']:checked");
+            let selectedCategories = Array.from(checkedInputs).map(input => input.value);
+            displayProduct(selectedCategories);
+        };
+
+        // Show details 
+        let showDetails = (description) => {
+            detailsContent.textContent = description;
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+        };
+
+        // Close details 
+        let closeDetails = () => {
+            modal.style.display = 'none';
+            overlay.style.display = 'none';
+        };
+
+
+     
+
+        
+        displayProduct();
+    </script>
+</body>
+
+</html>
